@@ -1,49 +1,53 @@
-# Server - SSE Chat Application
+# Server API Documentation
 
-## Architecture
+The backend service built with **Express**, **MongoDB**, and **Redis**.
 
-The backend is a Node.js application using **Express**.
+## Core Responsibilities
 
-- **Database**: **MongoDB** (via Mongoose) stores Users, Rooms, and Messages.
-- **Authentication**: JWT-based auth. Passwords hashed with `bcryptjs`.
-- **Real-time Engine**: **Server-Sent Events (SSE)**.
-  - Instead of WebSockets, we use a unidirectional HTTP stream (`text/event-stream`).
-  - Clients connect to `/api/chat/events/:roomId`.
-  - The server maintains a list of open response objects (`res`) for each room and writes data to them when new events occur.
+1.  **REST API**: Handles user authentication, room management, and message receipt.
+2.  **SSE Engine**: Maintains heavy, long-lived HTTP connections to push updates to clients.
+3.  **Synchronization**: orchestrates multi-server events via Redis.
 
-## Setup & Run
+## Technology Stack
 
-1.  **Install Dependencies**:
+- **Runtime**: Node.js
+- **Framework**: Express.js
+- **Database**: MongoDB (Mongoose)
+- **Message Broker**: Redis (Pub/Sub)
+- **Auth**: JSON Web Tokens (JWT)
 
-    ```bash
-    npm install
-    ```
+## Setup & Configuration
 
-2.  **Environment Setup**:
-    Create a `.env` file in this directory:
+### Environment Variables (.env)
 
-    ```
-    PORT=5000
-    MONGO_URI=mongodb://localhost:27017/sse-chat
-    JWT_SECRET=your_super_secret_key
-    ```
+| Variable     | Description               | Default                              |
+| :----------- | :------------------------ | :----------------------------------- |
+| `PORT`       | Server listening port     | `5000`                               |
+| `MONGO_URI`  | MongoDB connection string | `mongodb://localhost:27017/sse-chat` |
+| `REDIS_URL`  | Redis connection string   | `redis://localhost:6379`             |
+| `JWT_SECRET` | Secret for signing tokens | `secret`                             |
 
-    _(A sample `.env` has been provided)._
+### Installation
 
-3.  **Run Locally**:
-    ```bash
-    npm run dev
-    ```
-
-    - The server runs on port `5000`.
+```bash
+npm install
+npm run dev
+```
 
 ## API Endpoints
 
-- **Auth**: `POST /signup`, `POST /login`
-- **Chat**:
-  - `POST /rooms` (Create)
-  - `POST /rooms/join` (Join)
-  - `POST /rooms/:id/messages` (Send Message)
-  - `DELETE /rooms/:id` (Close Room)
-  - `GET /rooms/:id` (Get Details)
-- **SSE**: `GET /events/:id` (Stream)
+### Auth
+
+- `POST /api/auth/signup`: Create account.
+- `POST /api/auth/login`: Authenticate and receive Token.
+
+### Chat
+
+- `POST /api/chat/rooms`: Create a new room.
+- `POST /api/chat/rooms/join`: Join an existing room.
+- `GET /api/chat/rooms/:roomId`: Fetch participants and history.
+- `DELETE /api/chat/rooms/:roomId`: Delete/Close a room.
+
+### Real-Time
+
+- `GET /api/chat/events/:roomId`: The SSE stream endpoint.

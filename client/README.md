@@ -1,38 +1,34 @@
-# Client - SSE Chat Application
+# Client Documentation
+
+A **React** application initialized with **Vite**, designed for stability and real-time responsiveness.
 
 ## Architecture
 
-The frontend is built using **React** with **Vite** for fast development.
+### State Strategy
+The application prioritizes **Optimistic UI** and **Offline Resilience**.
+-   **Authentication**: Managed via Context API (`AuthContext`). User session persists in LocalStorage (token).
+-   **Chat State**: Messages and Participants are held in local component state. This ensures that if the server connection drops, the user can still read existing messages.
 
-- **Routing**: `react-router-dom` handles navigation between Auth, Lobby, and Chat rooms.
-- **State Management**:
-  - `AuthContext`: Manages user authentication state and JWT storage.
-  - Local State: Components manage their own UI state (messages, input, etc.).
-- **Real-time Communication**:
-  - **Server-Sent Events (SSE)**: Uses the native `EventSource` API to receive real-time updates (messages, participant joins, room closure) from the backend.
-  - **Reconnection**: Handled natively by the browser's `EventSource` implementation. We explicitly permit retries on error.
+### Server-Sent Events (SSE) Integration
+We connect to the server using the native browser `EventSource` API.
+```javascript
+const source = new EventSource('/api/chat/events/' + roomId);
 
-## Setup & Run
+source.onmessage = (event) => {
+    // Handle new message
+};
+```
 
-1.  **Install Dependencies**:
+**Why Native EventSource?**
+-   It handles **Automatic Reconnection**. If the server restarts or the internet drops, the browser automatically polls to reconnect (usually every 3 seconds).
+-   We explicitly handle the `onerror` state to show Visual Toast Notifications to the user ("Connection Lost").
 
-    ```bash
-    npm install
-    ```
+## Setup
 
-2.  **Environment Setup**:
-    - The client currently connects to `http://localhost:5000` by default.
-    - No `.env` file is strictly required for local development.
+1.  **Install**: `npm install`
+2.  **Develop**: `npm run dev` (Starts Vite on port 5173).
 
-3.  **Run Locally**:
-    ```bash
-    npm run dev
-    ```
-
-    - Access the app at `http://localhost:5173`.
-
-## Key Components
-
-- `pages/Auth.jsx`: Login/Signup forms with glassmorphism UI.
-- `pages/Lobby.jsx`: Interface to create or join rooms.
-- `pages/ChatRoom.jsx`: Main chat interface. Handles SSE connection, message rendering, and room management.
+## Key Features
+-   **Dark Mode UI**: Glassmorphism aesthetic.
+-   **Room Management**: Authenticated users can create rooms; Guests can join via link.
+-   **Live Updates**: Participant lists & messages sync in real-time.
